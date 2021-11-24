@@ -1,6 +1,6 @@
 <template>
   <el-container class="base">
-    <el-header class="titleBox">
+    <el-header class="titleBox" style="margin-top:30px">
       <div class="title">
         <div>
           <span class="f">P</span>
@@ -16,9 +16,15 @@
           <div id="container">
             <div>
               <div id="join" class="animate join">
-                <before-meeting></before-meeting>
+                <before-meeting
+                  @nonuser="noncookieuser"
+                  :noncookie="noncookie"
+                ></before-meeting>
                 <div style="text-align:center">
-                  <el-button type="warning" id="go" @click="register"
+                  <el-button type="warning" class="go" @click="copyurl"
+                    >url복사</el-button
+                  >
+                  <el-button type="warning" class="go" @click="register"
                     >입장하기</el-button
                   >
                 </div>
@@ -33,71 +39,7 @@
             </div>
           </div>
         </el-main>
-        <el-footer v-if="this.options" class="footer">
-          <!-- 기존버튼 -->
-          <!-- <span>
-            <el-button
-              round
-              v-if="this.audioOn"
-              id="button-audio"
-              v-on:click="AudioOnOff"
-              value="Audio Off"
-              ><i class="fas fa-microphone"></i>&nbsp;&nbsp;음소거</el-button
-            >
-            <el-button
-              round
-              v-else
-              id="button-audio"
-              v-on:click="AudioOnOff"
-              value="Audio On"
-              ><i class="fas fa-microphone-alt-slash"></i>&nbsp;&nbsp;음소거
-              해제</el-button
-            ></span
-          >
-          <span
-            ><el-button
-              round
-              v-if="this.videoOn"
-              id="button-video"
-              v-on:click="VideoOnOff"
-              value="Video Off"
-              ><i class="fas fa-video"></i>&nbsp;&nbsp;비디오 Off</el-button
-            >
-            <el-button
-              round
-              v-else
-              id="button-video"
-              v-on:click="VideoOnOff"
-              value="Video On"
-              ><i class="fas fa-video-slash"></i>&nbsp;&nbsp;비디오
-              On</el-button
-            ></span
-          ><span>
-            <el-button
-              round
-              type="success"
-              id="button-setting"
-              @click="this.dialogVisible = true"
-              value="Setting"
-              >설정</el-button
-            ></span
-          >
-          <span
-            ><el-button
-              round
-              type="danger"
-              id="button-leave"
-              @click="exitDiaVisible = true"
-            >
-              X</el-button
-            >
-          </span>
-          <el-button
-            type="warning"
-            icon="el-icon-chat-round"
-            circle
-            @click="visiblechat"
-          ></el-button> -->
+        <el-footer v-if="this.options" class="footer" style="left:0px">
           <!-- 바뀐버튼 -->
           <el-button-group>
             <el-button
@@ -138,67 +80,88 @@
               ><i class="fas fa-video-slash"></i>&nbsp;&nbsp;비디오
               시작</el-button
             >
-
-            <el-button type="success" plain @click="visiblechat"
-              ><i class="far fa-comments"></i>&nbsp;&nbsp;실시간 채팅</el-button
+            <!-- 실시간채팅버튼 -->
+            <el-popover
+              placement="top-start"
+              title="실시간채팅"
+              :width="300"
+              trigger="click"
             >
-            <el-button
+              <template #reference>
+                <el-button
+                  type="success"
+                  plain
+                  style="position:relative"
+                  @click="alaramcheck"
+                  ><i class="far fa-comments"></i>&nbsp;&nbsp;실시간 채팅
+                  <div
+                    id="circle2"
+                    style="position:absolute"
+                    v-if="readchat"
+                  ></div
+                ></el-button>
+              </template>
+              <div class="scroll type1" id="chatdiv">
+                <div
+                  v-for="(item, index) in chatlist"
+                  :key="index"
+                  :class="[item.name == username ? 'itemright' : 'itemleft']"
+                >
+                  <p v-if="item.name == username" class="speech-bubble">
+                    {{ item.text }}
+                  </p>
+                  <p v-else class="speech-bubble-left">
+                    {{ item.name }}<br />
+                    {{ item.text }}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <el-input
+                  v-model="chattext"
+                  @keyup.enter="sendchat"
+                  placeholder="메시지를 입력해주세요"
+                >
+                </el-input>
+              </div>
+            </el-popover>
+            <!-- <el-button
               round
               id="button-setting"
               @click="this.dialogVisible = true"
               value="Setting"
               >설정</el-button
+            > -->
+
+            <el-popconfirm
+              confirmButtonText="OK"
+              @confirm="leaveRoom"
+              cancelButtonText="No, Thanks"
+              icon="el-icon-info"
+              iconColor="red"
+              title="면접장을 나가시겠습니까?"
             >
-            <el-button
-              round
-              type="danger"
-              id="button-leave"
-              @click="exitDiaVisible = true"
-            >
-              X</el-button
-            >
+              <!-- @click="exitDiaVisible = true" -->
+              <template #reference>
+                <el-button round type="danger" id="button-leave"> X</el-button>
+              </template>
+            </el-popconfirm>
           </el-button-group>
-          <!--  -->
         </el-footer>
       </el-container>
-
-      <el-aside
-        v-if="visible"
-        id="chatdivtop"
-        style="margin-top:40px; width:300px; position:flexed"
-      >
-        <div class="scroll type1" id="chatdiv">
-          <div
-            v-for="(item, index) in chatlist"
-            :key="index"
-            :class="[item.name == username ? 'itemright' : 'itemleft']"
-          >
-            <p v-if="item.name == username" class="speech-bubble">
-              {{ item.text }}
-            </p>
-            <p v-else class="speech-bubble-left">
-              {{ item.name }}<br />
-              {{ item.text }}
-            </p>
-          </div>
-        </div>
-        <div>
-          <el-input v-model="chattext" @keyup.enter="sendchat"> </el-input>
-        </div>
-      </el-aside>
     </el-container>
   </el-container>
 
-  <el-dialog
+  <!-- <el-dialog
     v-model="this.dialogVisible"
     style="width: 100%; height:100%"
     title="설정"
     :before-close="handleClose"
   >
     설정을 할 수 있는 곳이 될 것
-  </el-dialog>
+  </el-dialog> -->
 
-  <el-dialog v-model="exitDiaVisible" width="30%">
+  <!-- <el-dialog v-model="exitDiaVisible" width="30%">
     <span>면접장에서 나가시겠습니까?</span>
     <template #footer>
       <span class="dialog-footer">
@@ -206,12 +169,15 @@
         <el-button type="danger" @click="leaveRoom">퇴장하기</el-button>
       </span>
     </template>
-  </el-dialog>
+  </el-dialog> -->
+  <input type="text" id="ShareUrl" style="display:none;" />
 </template>
 <script>
 import BeforeMeeting from "./beforeMettingRoom.vue";
 import kurentoUtils from "kurento-utils";
 import adapter from "webrtc-adapter";
+import jwt_decode from "jwt-decode";
+// import wsocket from "@/components/utils/websocket.js";
 //const PARTICIPANT_MAIN_CLASS = "participant main";
 //const PARTICIPANT_CLASS = "participant";
 var ws = null;
@@ -231,17 +197,44 @@ export default {
       chatlist: [],
       visible: false,
       exitDiaVisible: false,
+      noncookie: null,
+      noncookieusername: "",
+      alaram: "",
+      readchat: false,
     };
   },
-  watch: {},
+  watch: {
+    chatlist: {
+      deep: true,
+      handler() {
+        let popdiv = document.getElementsByClassName("el-popover")[0];
+        let opencheck = popdiv.getAttribute("aria-hidden");
+        if (opencheck == "false") {
+          this.readchat = false;
+        } else {
+          this.readchat = true;
+        }
+      },
+    },
+  },
   components: {
     BeforeMeeting,
   },
+  created() {
+    if (localStorage.getItem("username") != null) {
+      this.username = localStorage.getItem("username");
+    }
 
+    const token = this.$cookies.get("PID_AUTH");
+    if (token == null || token == "") {
+      this.noncookie = true;
+    }
+  },
   mounted: function() {
     console.log(adapter.browserDetails.browser);
     ws = new WebSocket("wss://i5d206.p.ssafy.io:8443/groupcall");
     this.username = localStorage.getItem("username");
+
     this.room = this.$route.params.url;
     ws.onmessage = (message) => {
       var parsedMessage = JSON.parse(message.data);
@@ -283,10 +276,35 @@ export default {
     };
 
     ws.onopen = function() {
-      console.log("Websocket is connected!");
+      console.log("interviesroom - Websocket is connected!");
     };
   },
   methods: {
+    copyurl() {
+      var dummy = document.createElement("input");
+      var text = location.href;
+
+      document.body.appendChild(dummy);
+      dummy.value = text;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+
+      this.$message.success("URL이 복사되었습니다!");
+    },
+    alaramcheck() {
+      let popdiv = document.getElementsByClassName("el-popover")[0];
+
+      let opencheck = popdiv.getAttribute("aria-hidden");
+      if (opencheck == "true") {
+        this.readchat = false;
+      }
+    },
+    noncookieuser(name) {
+      this.noncookieusername = name;
+      this.username = this.noncookieusername;
+      console.log(this.username);
+    },
     visiblechat() {
       var s = document.getElementById("chatdiv");
       this.visible = !this.visible;
@@ -308,17 +326,36 @@ export default {
       this.chattext = "";
     },
     register() {
-      document.getElementById("join").style.display = "none";
-      document.getElementById("room").style.display = "block";
-      this.username = localStorage.getItem("username");
-      this.options = true;
-      var message = {
-        id: "joinRoom",
-        name: this.username,
-        room: this.room,
-      };
+      var message;
 
-      this.sendMessage(message);
+      if (this.noncookie) {
+        let user = this.noncookieusername.replace(" ", "");
+        if (user == "" || this.noncookieusername == null) {
+          this.$message.error("사용자 이름을 입력해주세요.");
+          return;
+        } else {
+          document.getElementById("join").style.display = "none";
+          document.getElementById("room").style.display = "block";
+          this.options = true;
+          message = {
+            id: "joinRoom",
+            name: this.noncookieusername,
+            room: this.room,
+          };
+          this.sendMessage(message);
+        }
+      } else {
+        this.username = localStorage.getItem("username");
+        document.getElementById("join").style.display = "none";
+        document.getElementById("room").style.display = "block";
+        this.options = true;
+        message = {
+          id: "joinRoom",
+          name: this.username,
+          room: this.room,
+        };
+        this.sendMessage(message);
+      }
     },
 
     onNewParticipant(request) {
@@ -389,12 +426,55 @@ export default {
         participants[key].dispose();
       }
 
-      document.getElementById("join").style.display = "block";
-      document.getElementById("room").style.display = "none";
+      // document.getElementById("join").style.display = "block";
+      // document.getElementById("room").style.display = "none";
+      // document.getElementById("chatdivtop").style.display = "none";
       this.exitDiaVisible = false;
       this.options = false;
+      // 로그인, 비로그인에 따라 화면push
+      if (this.$cookies.get("PID_AUTH")) {
+        
+        const token = this.$cookies.get("PID_AUTH");
+        const decoded = jwt_decode(token);
+        const type = decoded.type;
+        if (type == 0) {
+          const loading = this.$loading({
+            lock: true,
+            text: "Loading",
+            spinner: "el-icon-loading",
+            background: "rgba(0, 0, 0, 0.7)",
+          });
+          setTimeout(() => {
+            loading.close();
+            this.$router.push("/user");
+          }, 1000);
+        }
+        if (type == 1) {
+          const loading = this.$loading({
+            lock: true,
+            text: "Loading",
+            spinner: "el-icon-loading",
+            background: "rgba(0, 0, 0, 0.7)",
+          });
+          setTimeout(() => {
+            loading.close();
+            this.$router.push("/company");
+          }, 1000);
+        }
+      } else {
+        const loading = this.$loading({
+          lock: true,
+          text: "Loading",
+          spinner: "el-icon-loading",
+          background: "rgba(0, 0, 0, 0.7)",
+        });
+        setTimeout(() => {
+          loading.close();
+          this.$router.push("/");
+        }, 1000);
+      }
     },
-
+    //
     receiveVideo(sender) {
       var participant = new this.Participant(sender, this.sendMessage);
       participants[sender] = participant;
@@ -527,22 +607,22 @@ export default {
         this.videoOn = true;
       }
     },
-    handleClose(done) {
-      this.$confirm("설정을 완료 하시겠습니까?")
-        .then(() => {
-          done();
-          this.dialogVisible = false;
-        })
-        .catch((err) => {
-          console.log("token error");
-          console.log(err.response);
-          if (err.response == 401) {
-            this.$message.error("로그인세션이 만료되었습니다");
-            localStorage.clear();
-            this.$router.push("/");
-          }
-        });
-    },
+    // handleClose(done) {
+    //   this.$confirm("설정을 완료 하시겠습니까?")
+    //     .then(() => {
+    //       done();
+    //       this.dialogVisible = false;
+    //     })
+    //     .catch((err) => {
+    //       
+    //       
+    //       if (err.response == 401) {
+    //         this.$message.error("로그인세션이 만료되었습니다");
+    //         localStorage.clear();
+    //         this.$router.push("/");
+    //       }
+    //     });
+    // },
   },
 };
 </script>
@@ -552,7 +632,7 @@ export default {
   width: 300px;
   padding: 0px 13px 0px 13px;
   overflow-y: scroll;
-  height: 650px;
+  height: 400px;
   box-sizing: border-box;
   color: black;
   font-family: "Nanum Gothic";
@@ -591,7 +671,7 @@ export default {
   position: relative;
   background: #f2f3f4;
   border-radius: 0.4em;
-  width: 200px;
+  /* width: 200px; */
   margin-right: 20px;
   word-break: break-all;
   padding: 5px;
@@ -616,7 +696,7 @@ export default {
   position: relative;
   background: #ffc000;
   border-radius: 0.4em;
-  width: 200px;
+  /* width: 200px; */
   margin-left: 20px;
   word-break: break-all;
   padding: 5px;
@@ -636,9 +716,9 @@ export default {
   margin-top: -5px;
   margin-right: -10px;
 }
-#go {
+.go {
   width: 200px;
-  border-radius: 100px;
+  border-radius: 150px !important;
 }
 .footer {
   background-color: whitesmoke;
@@ -737,5 +817,19 @@ export default {
     transform: translateZ(-800px) rotateY(90deg);
     opacity: 0;
   }
+}
+#circle2 {
+  background-color: #ff0000;
+  border: 1px solid #ff0000;
+  width: 15px;
+  height: 15px;
+  border-radius: 75px;
+  text-align: center;
+  margin: -30px 0px 0px 110px;
+  /* font-size: 12px;
+  color: #fff; */
+
+  /* vertical-align: middle; */
+  /* line-height: 100px; */
 }
 </style>

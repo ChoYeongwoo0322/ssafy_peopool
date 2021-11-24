@@ -18,6 +18,9 @@ public interface ProfileOfIndividualRepo {
 	
 	// 프로필 수정
 	int modifyProfile(ProfileOfIndividual profileOfIndividual);
+	
+	// 자기소개 수정
+	int modifyIntro(ProfileOfIndividual profileOfIndividual);
 
 	// 프로필 공개
 	int modifySwitchOn(ProfileOfIndividual profileOfIndividual);
@@ -38,7 +41,7 @@ public interface ProfileOfIndividualRepo {
 	int modifyVideo(ProfileOfIndividual profileOfIndividual);
 
 	// 프로필 조회
-	List<Map<Object, Object>> getProfile(int index);
+	Map<Object, Object> getProfile(int index);
 	
 	// 인덱스로 조회
 	IndCard getIndexOfProfile(int index);
@@ -48,4 +51,13 @@ public interface ProfileOfIndividualRepo {
 	
 	// 자기소개에 따른 사용자 프로필 조회
 	List<IndCard> getIntroOfProfile(String word);
+
+	// 직무 변경
+	int modifyPart(ProfileOfIndividual profileOfIndividual);
+
+	// 인덱스로 경력과 직무 조회
+	IndCard getIndexOfCareerAndPart(int index);
+
+	// 경력 변경
+	int modifyCareer(ProfileOfIndividual profileOfIndividual);
 }

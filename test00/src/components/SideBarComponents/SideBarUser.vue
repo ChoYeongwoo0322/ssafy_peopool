@@ -14,14 +14,14 @@
       </router-link>
       <el-menu background-color="#f1c40f">
         <el-menu-item index="1" onclick="location.href = '/user'">
-          <i class="fas fa-home"></i><span style="margin:10px">Home</span>
+          <i class="fas fa-home"></i><span style="margin:10px">홈</span>
         </el-menu-item>
         <!--  -->
         <router-link
           :to="{ name: 'ProfileUser', params: { userindex: userindex } }"
           style="color: black; text-decoration: none;"
           ><el-menu-item index="2">
-            <i class="el-icon-user"></i><span>User</span></el-menu-item
+            <i class="el-icon-user"></i><span>유저프로필</span></el-menu-item
           ></router-link
         >
         <!--  -->
@@ -51,17 +51,9 @@
           <i class="el-icon-back"></i>
           <span><UserFollowers /></span>
         </el-menu-item>
-        <!--  -->
-
-        <!--  -->
-        <el-menu-item index="7">
-          <i class="el-icon-setting"></i>
-          <span>settings</span>
-        </el-menu-item>
-        <!--  -->
-        <el-menu-item index="8">
+        <el-menu-item index="7" @click="Logout">
           <i class="el-icon-turn-off"></i>
-          <el-text @click="Logout">Logout</el-text>
+          <el-text>로그아웃</el-text>
         </el-menu-item>
         <!--  -->
       </el-menu>
@@ -95,14 +87,8 @@ export default {
     UserFollowers,
   },
   methods: {
-    mvHome() {
-      this.$router.replace("user");
-    },
     // 로그아웃
     Logout() {
-      // 깔끔하게 비우기
-      this.$cookies.remove("token");
-      localStorage.clear();
       // 로딩페이지
       const loading = this.$loading({
         lock: true,
@@ -118,7 +104,6 @@ export default {
           message: "로그아웃",
           type: "success",
         });
-        location.reload();
       }, 2000);
     },
   },
@@ -133,12 +118,13 @@ img {
 .sidebar {
   position: fixed;
   height: 100%;
+  bottom: 0px;
   overflow: auto;
   font-size: 30px;
   z-index: 1000;
 }
 .el-menu {
-  height: 90%;
+  height: 91.91%;
 }
 .title span {
   font-family: "Work Sans", sans-serif;

@@ -1,4 +1,5 @@
 <template>
+  <!--/-->
   <el-container>
     <el-aside width="200px"><SideBarCompany :usertoken="index"/></el-aside>
     <el-container>
@@ -36,16 +37,12 @@
           <el-divider></el-divider>
           <el-row style="margin: 0.3rem">
             <el-col :span="24">
-              <el-checkbox
-                v-if="this.cat_ind != 1"
-                :indeterminate="isIndeterminate"
-                v-model="checkAll"
-                @change="handleCheckAllChange"
-                >전체 선택</el-checkbox
+              <el-checkbox-group
+                v-model="this.selected"
+                @change="handleCheckedChange"
               >
-              <div style="margin: 1rem 0;"></div>
-              <el-checkbox-group v-model="this.selected" @change="handleCheckedChange">
                 <el-checkbox
+                  style="margin:5px"
                   v-for="item in this.taglist"
                   :label="item.taglist_index"
                   :key="item.taglist_index"
@@ -70,18 +67,30 @@
               </el-switch
             ></el-col>
             <el-col :span="2"
-              ><el-button type="success" icon="el-icon-search" @click="this.getOriginList"
+              ><el-button
+                type="success"
+                icon="el-icon-search"
+                @click="this.getOriginList"
                 >검색</el-button
               >
             </el-col>
           </el-row>
           <el-divider></el-divider>
         </el-main>
-        <el-table :data="this.resultList">
-          <el-table-column prop="ind_name" label="성명" />
-          <el-table-column prop="ind_phone" label="전화번호" />
-        </el-table>
+
+        <h3>검색 결과 (상세 정보를 보려면 클릭하세요)</h3>
+
+        <div v-infinite-scroll="load" style="overflow:auto; height:500px">
+          <div>
+            <el-row :gutter="20">
+              <el-col :span="6" v-for="item in resultList" :key="item">
+                <UserInfoCard :userindex="item.ind_index" />
+              </el-col>
+            </el-row>
+          </div>
+        </div>
       </el-main>
+      
     </el-container>
   </el-container>
 </template>
@@ -89,67 +98,68 @@
 <script>
 import SideBarCompany from "@/components/SideBarComponents/SideBarCompany.vue";
 import headerSearchUser from "@/components/SideBarComponents/headerSearchUser.vue";
+import UserInfoCard from "@/components/UserInfo/UserInfoCard.vue";
+import jwt_decode from "jwt-decode";
 import axios from "axios";
-//import jwt_decode from "jwt-decode";
 
-var token;
-//var decoded;
-//var index;
+
 const qs = require("qs");
-
+var token;
 export default {
-  name:"FinduserBytag",
   mounted() {
     token = this.$cookies.get("PID_AUTH");
+    const decoded = jwt_decode(token);
+    const index = decoded.index;
+    this.ent_index = index;
     //    decoded = jwt_decode(token);
     //    index = decoded.index;
 
     axios
-      .get("https://localhost:8443/taglist/cat", {
+      .get("https://i5d206.p.ssafy.io:8443/taglist/cat", {
         headers: { Authorization: token },
       })
       .then((res) => {
         this.categorylist = res.data;
       })
       .catch((err) => {
-        console.log(err.response);
+        
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
-          console.log("token error");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
       });
 
     axios
-      .get("https://localhost:8443/career/", {
+      .get("https://i5d206.p.ssafy.io:8443/career/", {
         headers: { Authorization: token },
       })
       .then((res) => {
         this.careerlist = res.data;
       })
       .catch((err) => {
-        console.log(err.response);
+        
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
-          console.log("token error");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
       });
 
     axios
-      .get("https://localhost:8443/taglist/", {
+      .get("https://i5d206.p.ssafy.io:8443/taglist/", {
         headers: { Authorization: token },
       })
       .then((res) => {
         this.taglist = res.data;
       })
       .catch((err) => {
-        console.log(err.response);
+        
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
-          console.log("token error");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
@@ -157,6 +167,7 @@ export default {
   },
   data() {
     return {
+      ent_index: null,
       checkAll: false,
       isIndeterminate: true,
       categorylist: [],
@@ -185,30 +196,36 @@ export default {
   components: {
     SideBarCompany,
     headerSearchUser,
+    UserInfoCard,
+  },
+  computed: {
+    hasResult() {
+      return this.resultList.length > 0;
+    },
   },
   watch: {
     cat_ind() {
       this.selected = [];
       if (this.cat_ind == 1) {
         axios
-          .get("https://localhost:8443/taglist/", {
+          .get("https://i5d206.p.ssafy.io:8443/taglist/", {
             headers: { Authorization: token },
           })
           .then((res) => {
             this.taglist = res.data;
           })
           .catch((err) => {
-            console.log(err.response);
+            
             if (err.response == 401) {
               this.$message.error("로그인세션이 만료되었습니다");
-              console.log("token error");
+              this.$cookies.remove("PID_AUTH");
               localStorage.clear();
               this.$router.push("/");
             }
           });
       } else {
         axios
-          .get(`https://localhost:8443/taglist/${this.cat_ind}`, {
+          .get(`https://i5d206.p.ssafy.io:8443/taglist/${this.cat_ind}`, {
             headers: { Authorization: token },
           })
           .then((res) => {
@@ -216,7 +233,7 @@ export default {
           })
           .catch((err) => {
             if (err.response == 401) {
-              console.log("token error");
+              this.$cookies.remove("PID_AUTH");
               this.$message.error("로그인세션이 만료되었습니다");
               localStorage.clear();
               this.$router.push("/");
@@ -249,21 +266,32 @@ export default {
   },
 
   methods: {
-    handleCheckAllChange(val) {
-      this.selected = val ? this.taglist : [];
-      this.isIndeterminate = false;
-    },
-    handleCheckedChange(value) {
-      let checkedCount = value.length;
-      this.checkAll = checkedCount === this.taglist.length;
-      this.isIndeterminate = checkedCount > 0 && checkedCount < this.taglist.length;
+    load() {
+      this.count += 2;
     },
     getOriginList() {
+      this.hasSearched = true;
       this.originlist = [];
       console.log(this.isUnion);
-      if (this.isUnion == "union") {
+
+      if (this.selected.length <= 0) {
         axios
-          .get("https://localhost:8443/has/union", {
+          .get("https://i5d206.p.ssafy.io:8443/poi", {})
+          .then((res) => {
+            this.originlist = res.data;
+            console.log(this.originlist);
+          })
+          .catch((err) => {
+            if (err.response == 401) {
+              this.$cookies.remove("PID_AUTH");
+              this.$message.error("로그인세션이 만료되었습니다");
+              localStorage.clear();
+              this.$router.push("/");
+            }
+          });
+      } else if (this.isUnion == "union") {
+        axios
+          .get("https://i5d206.p.ssafy.io:8443/has/union", {
             headers: { Authorization: token },
             params: {
               list: this.selected,
@@ -278,7 +306,7 @@ export default {
           })
           .catch((err) => {
             if (err.response == 401) {
-              console.log("token error");
+              this.$cookies.remove("PID_AUTH");
               this.$message.error("로그인세션이 만료되었습니다");
               localStorage.clear();
               this.$router.push("/");
@@ -286,7 +314,7 @@ export default {
           });
       } else if (this.isUnion == "inter") {
         axios
-          .get("https://localhost:8443/has/inter", {
+          .get("https://i5d206.p.ssafy.io:8443/has/inter", {
             headers: { Authorization: token },
             params: {
               list: this.selected,
@@ -301,7 +329,7 @@ export default {
           })
           .catch((err) => {
             if (err.response == 401) {
-              console.log("token error");
+              this.$cookies.remove("PID_AUTH");
               this.$message.error("로그인세션이 만료되었습니다");
               localStorage.clear();
               this.$router.push("/");

@@ -97,7 +97,7 @@
 import jwt_decode from "jwt-decode";
 import axios from "axios";
 export default {
-  name:"MainUserCompanyInfo",
+  name: "MainUserCompanyInfo",
   props: { item: Number },
   data() {
     // 토큰가져오기
@@ -114,14 +114,19 @@ export default {
       })
       .then((res) => {
         // 팔로우가 되어있는것
-        if (res.status==200){(this.follow = true)}
-        if (res.status==204){(this.follow = false)}
+        if (res.status == 200) {
+          this.follow = true;
+        }
+        if (res.status == 204) {
+          this.follow = false;
+        }
       })
       .catch((err) => {
         // 팔로우가 안되어있는것
         console.log(err);
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
@@ -144,9 +149,9 @@ export default {
         this.company_info.ent_ceo = res.data.ent_ceo;
       })
       .catch((err) => {
-        console.log(err.response);
+        
         if (err.response == 401) {
-          console.log("token error");
+          this.$cookies.remove("PID_AUTH");
           this.$message.error("로그인세션이 만료되었습니다");
           localStorage.clear();
           this.$router.push("/");
@@ -167,7 +172,7 @@ export default {
       })
       .catch((err) => {
         if (err.response == 401) {
-          console.log("token error");
+          this.$cookies.remove("PID_AUTH");
           this.$message.error("로그인세션이 만료되었습니다");
           localStorage.clear();
           this.$router.push("/");
@@ -197,11 +202,11 @@ export default {
     //팔로잉버튼
     clickfollowBtn() {
       if (this.follow) {
-        console.log("팔로우 해제");
+        
         console.log(this.user_index, this.item);
         axios
           .delete("https://i5d206.p.ssafy.io:8443/fol", {
-            headers: { Authorization: this.token },
+            headers: { Authorization: this.$store.state.usertoken },
             data: {
               fol_type: 0,
               following: this.user_index,
@@ -213,19 +218,19 @@ export default {
             this.follow = false;
           })
           .catch((err) => {
-            console.log("token error");
-            console.log(err.response);
+            
             if (err.response == 401) {
               this.$message.error("로그인세션이 만료되었습니다");
+              this.$cookies.remove("PID_AUTH");
               localStorage.clear();
               this.$router.push("/");
             }
           });
       } else if (this.follow == false) {
-        console.log("팔로잉");
+        
         axios
           .post("https://i5d206.p.ssafy.io:8443/fol", {
-            headers: { Authorization: this.token },
+            headers: { Authorization: this.$store.state.usertoken },
             fol_type: 0,
             following: this.user_index,
             follower: this.item,
@@ -235,10 +240,10 @@ export default {
             this.follow = true;
           })
           .catch((err) => {
-            console.log("token error");
-            console.log(err.response);
+            
             if (err.response == 401) {
               this.$message.error("로그인세션이 만료되었습니다");
+              this.$cookies.remove("PID_AUTH");
               localStorage.clear();
               this.$router.push("/");
             }
@@ -277,12 +282,3 @@ export default {
   width: "50%";
 }
 </style>
-
-
-<el-card
-    shadow="hover"
-    style="margin-bottom:20px; text-align:center"
-    @click="dialogVisible = true"
-  >
-    <h1>{{ item.ent_name }}</h1>
-  </el-card>

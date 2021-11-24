@@ -2,6 +2,7 @@ package com.ssafy.peopool.model.service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ssafy.peopool.model.EntCard;
+import com.ssafy.peopool.model.EntCardImage;
 import com.ssafy.peopool.model.ProfileOfEnterprise;
 import com.ssafy.peopool.model.repo.ProfileOfEnterpriseRepo;
 
@@ -29,7 +31,7 @@ public class ProfileOfEnterpriseServiceImpl implements ProfileOfEnterpriseServic
 	
 	// 전체 프로필 조회 (팔로워 순)
 	@Override
-	public List<EntCard> getAllProfileByFollower() throws SQLException {
+	public List<EntCardImage> getAllProfileByFollower() throws SQLException {
 		// TODO Auto-generated method stub
 		return profileOfEnterpriseRepo.getAllProfileByFollower();
 	}
@@ -81,6 +83,12 @@ public class ProfileOfEnterpriseServiceImpl implements ProfileOfEnterpriseServic
 			logger.debug("파일 번호 : {}", profileOfEnterprise.getEnt_image());
 		}
 		return profileOfEnterpriseRepo.modifyProfileOfEnterprise(profileOfEnterprise) == 1;
+	}
+
+	@Override
+	public List<Map<Object, Object>> getProfile(int index) {
+		// TODO Auto-generated method stub
+		return profileOfEnterpriseRepo.getProfile(index);
 	}
 
 	

@@ -13,6 +13,7 @@
           <SearchUserTagList />
         </div>
       </el-main>
+      
     </el-container>
   </el-container>
 </template>
@@ -21,6 +22,7 @@
 import SideBarCompany from "@/components/SideBarComponents/SideBarCompany.vue";
 import headerSearchUser from "@/components/SideBarComponents/headerSearchUser.vue";
 import SearchUserTagList from "@/components/search/SearchUserTagList.vue";
+
 
 export default {
   name: "SearchUser",

@@ -39,10 +39,11 @@ export default {
         this.ents = res.data;
       })
       .catch((err) => {
-        console.log(err.response);
+        
         if (err.response == 401) {
-          console.log("token error");
+          
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }

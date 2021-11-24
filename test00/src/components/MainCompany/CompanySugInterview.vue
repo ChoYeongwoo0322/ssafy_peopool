@@ -1,6 +1,6 @@
 <template>
   <el-table
-  style="border-radius: 2em;"
+    style="border-radius: 2em;"
     :data="
       InterviewSug.filter(
         (data) =>
@@ -24,12 +24,45 @@
       :filter-method="filterHandler"
       width="60%"
     >
+      <template #default="scope">
+        <div v-if="scope.row.sug_state == 'W'">대기</div>
+        <div v-else-if="scope.row.sug_state == 'T'">확정</div>
+        <div v-else-if="scope.row.sug_state == 'F'">거절</div>
+        <div v-else-if="scope.row.sug_state == 'C'">취소</div>
+      </template>
     </el-table-column>
     <el-table-column align="center" label="요청일" prop="sug_send" width="160%">
     </el-table-column>
     <el-table-column align="center" label="피풀인" prop="name" width="100%">
     </el-table-column>
     <el-table-column align="center" label="직무" prop="sug_duty" width="120%">
+    </el-table-column>
+    <el-table-column align="center" label="요청상태">
+      <template #default="scope">
+        <el-text v-if="scope.row.sug_state == 'W'" size="mini"
+          >응답대기</el-text
+        >
+        <el-button
+          v-if="scope.row.sug_state == 'W'"
+          size="mini"
+          type="danger"
+          @click="CancelInt(scope.row.sug_index)"
+          >요청취소</el-button
+        >
+        <el-text
+          v-if="scope.row.sug_state == 'T'"
+          disabled
+          size="mini"
+          style="margin-right:5px"
+          >면접수락</el-text
+        >
+        <el-text v-if="scope.row.sug_state == 'C'" disabled size="mini"
+          >취소된 요청</el-text
+        >
+        <el-text v-if="scope.row.sug_state == 'F'" disabled size="mini"
+          >거절된 요청</el-text
+        >
+      </template>
     </el-table-column>
     <el-table-column
       align="center"
@@ -40,42 +73,14 @@
     </el-table-column>
     <el-table-column align="center">
       <template #header>
-        <el-input v-model="search" size="mini" placeholder="Type to search" />
+        <el-input
+          v-model="search"
+          size="mini"
+          placeholder="검색어를 입력해주세요"
+        />
       </template>
       <template #default="scope">
-        <el-row>
-          <el-col :span="6"
-            ><div><UserInfo :userindex="scope.row.ind_index" /></div
-          ></el-col>
-          <el-col :span="18"
-            ><div>
-              <span><el-button v-if="scope.row.sug_state == 'W'" size="mini"
-                >응답대기</el-button
-              >
-              <el-button
-                v-if="scope.row.sug_state == 'W'"
-                size="mini"
-                type="danger"
-                @click="CancelInt(scope.row.sug_index)"
-                >요청취소</el-button
-              ></span>
-
-              <el-text
-                v-if="scope.row.sug_state == 'T'"
-                disabled
-                size="mini"
-                style="margin-right:5px"
-                >면접수락</el-text
-              >
-              <el-button v-if="scope.row.sug_state == 'C'" disabled size="mini"
-                >취소된 요청입니다</el-button
-              >
-              <el-button v-if="scope.row.sug_state == 'F'" disabled size="mini"
-                >거절된 요청입니다</el-button
-              >
-            </div></el-col
-          >
-        </el-row>
+        <UserInfoDetailNoSug :userindex="scope.row.ind_index" />
       </template>
     </el-table-column>
   </el-table>
@@ -84,11 +89,11 @@
 <script>
 import jwt_decode from "jwt-decode";
 import axios from "axios";
-import UserInfo from "./UserInfo.vue";
+import UserInfoDetailNoSug from "@/components/UserInfo/UserInfoDetailNoSug.vue";
 
 export default {
   name: "CompanySugInterview",
-  components: { UserInfo },
+  components: { UserInfoDetailNoSug },
   data() {
     // 토큰으로 유저index 가져오기
     const token = this.$cookies.get("PID_AUTH");
@@ -107,6 +112,7 @@ export default {
         console.log("여기서 이미 못받아옴");
         if (err.response.data.status == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
@@ -123,7 +129,7 @@ export default {
       axios
         .put(
           "https://i5d206.p.ssafy.io:8443/sug/cancel",
-          { headers: { Authorization: this.token } },
+          { headers: { Authorization: this.$store.state.usertoken } },
           {
             params: {
               index: sugindex,
@@ -138,9 +144,9 @@ export default {
           });
         })
         .catch((err) => {
-          console.log("token error");
           if (err.response.data.status == 401) {
             this.$message.error("로그인세션이 만료되었습니다");
+            this.$cookies.remove("PID_AUTH");
             localStorage.clear();
             this.$router.push("/");
           }

@@ -6,7 +6,7 @@
       <el-header><headerSearchUser /></el-header>
       <!--  -->
       <el-header><h2>채용 프로세스 관리</h2></el-header>
-      <el-main style="margin:0 auto; width:105%">
+      <el-main style="margin:0 auto; width:100%">
         <div class="mainBoard">
           <el-tabs v-model="activeName" @tab-click="handleClick">
             <el-tab-pane label="미응답" name="offerTab">
@@ -37,6 +37,7 @@
           </el-tabs>
         </div>
       </el-main>
+      
     </el-container>
   </el-container>
 </template>
@@ -48,15 +49,16 @@
 <script>
 import SideBarCompany from "../components/SideBarComponents/SideBarCompany.vue";
 import headerSearchUser from "../components/SideBarComponents/headerSearchUser.vue";
-import ExamineCard from "../components/RecrutingBoard/ExamineCard.vue";
-import RecruitingBoardOfferTab from "../components/RecrutingBoard/RecruitingBoardOfferTab.vue";
-import RecruitingBoardRejectOfferTab from "../components/RecrutingBoard/RecruitingBoardRejectOfferTab.vue";
-import ProcessingInterview from "../components/RecrutingBoard/ProcessingInterview.vue";
-import PassUser from "../components/RecrutingBoard/PassUser.vue";
+import ExamineCard from "../components/Recruiting/ExamineCard.vue";
+import RecruitingBoardOfferTab from "../components/Recruiting/RecruitingBoardOfferTab.vue";
+import RecruitingBoardRejectOfferTab from "../components/Recruiting/RecruitingBoardRejectOfferTab.vue";
+import ProcessingInterview from "../components/Recruiting/ProcessingInterview.vue";
+import PassUser from "../components/Recruiting/PassUser.vue";
 import jwt_decode from "jwt-decode";
 import axios from "axios";
+
+
 export default {
-  name: "Recruiting",
   components: {
     SideBarCompany,
     headerSearchUser,
@@ -76,7 +78,6 @@ export default {
         headers: { Authorization: token },
       })
       .then((res) => {
-        console.log(res);
         // W인 애들만..
         for (var user of res.data) {
           if (user.int_done == "W") {
@@ -85,9 +86,9 @@ export default {
         }
       })
       .catch((err) => {
-        console.log("token error");
         if (err.response.data.status == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }

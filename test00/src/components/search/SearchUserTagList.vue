@@ -1,10 +1,11 @@
 <template>
-  <div v-if="this.result.length > 0">
+  <div v-if="this.result.length > 0" style="align-">
     <el-row :gutter="24">
-      <el-col :span="4" v-for="item in nowPageData" :key="item">
-        <SearchUserTagCard :userindex="item.ind_index" />
+      <el-col :span="6" v-for="item in nowPageData" :key="item">
+        <UserInfoCard :userindex="item.ind_index" />
       </el-col>
     </el-row>
+    <br>
     <div style="text-align:center">
       <el-pagination
         layout="prev, pager, next"
@@ -19,7 +20,7 @@
     </div>
   </div>
   <div v-if="this.result.length == 0" style="text-align:center">
-    태그에 해당하는 기업정보가 없습니다
+    태그에 해당하는 유저정보가 없습니다
   </div>
 </template>
 
@@ -27,12 +28,12 @@
 import { ref } from "vue";
 import axios from "axios";
 import { useRoute } from "vue-router";
-import SearchUserTagCard from "@/components/search/SearchUserTagCard.vue";
+import UserInfoCard from "@/components/UserInfo/UserInfoCard.vue";
 
 export default {
   name: "SearchUserTagList",
   components: {
-    SearchUserTagCard,
+    UserInfoCard,
   },
   setup() {
     // 토큰가져오기
@@ -64,24 +65,24 @@ export default {
     console.log(nowPageData);
 
     function initData() {
-      console.log(1);
+      
       sliceData();
     }
 
     function handleSizeChange(val) {
-      console.log(2);
+      
       tableSize = val;
       sliceData();
     }
 
     function handleCurrentChange(val) {
-      console.log(3);
+      
       nowPage.value = val;
       sliceData();
     }
 
     function sliceData() {
-      console.log(4);
+      
       nowPageData.value = result.value.slice(
         tableSize * nowPage.value - tableSize,
         tableSize * nowPage.value

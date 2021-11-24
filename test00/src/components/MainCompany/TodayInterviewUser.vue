@@ -1,8 +1,8 @@
 <template>
   <div v-if="this.todayinterviewuser !== null">
     <el-row :gutter="24">
-      <el-col :span="4" v-for="(item, i) in todayinterviewuser" :key="i">
-        <UserInfoCard :userindex="item.ind_index" />
+      <el-col :span="6" v-for="(item, i) in todayinterviewuser" :key="i">
+        <UserInfoCardNoSug :userindex="item.ind_index" />
       </el-col>
     </el-row>
   </div>
@@ -12,13 +12,13 @@
 </template>
 
 <script>
-import UserInfoCard from "./UserInfoCard.vue";
 import jwt_decode from "jwt-decode";
 import axios from "axios";
+import UserInfoCardNoSug from "@/components/UserInfo/UserInfoCardNoSug.vue";
 
 export default {
   name: "TodayInterviewUser",
-  components: { UserInfoCard },
+  components: { UserInfoCardNoSug },
   data() {
     // 토큰가져오기
     const token = this.$cookies.get("PID_AUTH");
@@ -44,7 +44,7 @@ export default {
       .then((res) => {
         console.log(todaydate);
         // 받아온 데이터 날짜랑 비교해주기
-        console.log(res.data);
+        
         for (var i in res.data) {
           if (todaydate == res.data[i].date) {
             console.log(res.data[i].interviewers);
@@ -55,6 +55,7 @@ export default {
       .catch((err) => {
         if (err.response.data.status == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }

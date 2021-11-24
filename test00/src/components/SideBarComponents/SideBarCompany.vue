@@ -13,7 +13,7 @@
       </router-link>
       <el-menu background-color="#f1c40f">
         <el-menu-item index="1" onclick="location.href = '/company'">
-          <i class="fas fa-home"></i><span style="margin:10px">Home</span>
+          <i class="fas fa-home"></i><span style="margin:10px">홈</span>
         </el-menu-item>
         <!--  -->
         <router-link
@@ -25,13 +25,14 @@
         >
           <el-menu-item index="2">
             <i class="el-icon-office-building"></i>
-            company
+            회사프로필
           </el-menu-item></router-link
         >
         <!--  -->
         <router-link
           :to="{
             name: 'recruiting',
+            params: { companyindex: companyindex },
           }"
           style="text-decoration: none; color:black"
         >
@@ -41,25 +42,24 @@
           </el-menu-item></router-link
         >
         <!--  -->
-        <el-menu-item index="5">
+        <el-menu-item index="3" @click="goToTagSearch"
+          ><span><i class="far fa-address-card" style="margin-right:10px"></i>인재 찾기</span>
+        </el-menu-item>
+
+        <el-menu-item index="4">
           <i class="el-icon-right"></i>
           <i class="el-icon-user-solid"></i>
           <span><CompanyFollowings /></span>
         </el-menu-item>
         <!--  -->
-        <el-menu-item index="6">
+        <el-menu-item index="5">
           <i class="el-icon-office-building"></i>
           <i class="el-icon-back"></i>
           <span><CompanyFollowers /></span>
         </el-menu-item>
-        <!--  -->
-        <el-menu-item index="7">
-          <i class="el-icon-setting"></i>
-          <span>setting</span>
-        </el-menu-item>
-        <el-menu-item index="8">
+        <el-menu-item index="7" @click="Logout">
           <i class="el-icon-turn-off"></i>
-          <span @click="Logout">Logout</span>
+          <span>Logout</span>
         </el-menu-item>
         <!--  -->
       </el-menu>
@@ -109,7 +109,10 @@ export default {
       }, 2000);
     },
     GoToRecruit() {
-      this.$router.push("recruiting");
+      location.href = "recruiting";
+    },
+    goToTagSearch() {
+      location.href = "/company/findtag";
     },
   },
 };
@@ -125,7 +128,7 @@ export default {
   z-index: 1000;
 }
 .el-menu {
-  height: 90%;
+  height: 91.91%;
 }
 .title {
   margin: 2%;

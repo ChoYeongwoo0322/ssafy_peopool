@@ -4,35 +4,46 @@
     <el-aside width="200px"><SideBarUser /></el-aside>
     <el-container>
       <el-header><headerSearchCompany /></el-header>
-      <el-header><h2>프로필</h2></el-header>
-      <el-main style="width:1000px; height:1000px">
-        <el-tabs :tab-position="tabPosition" style="height: 100%;">
+      <!-- <el-header><h2>프로필</h2></el-header> -->
+      <div style="text-align:center"></div>
+      <el-main style="width:70%; text-align:center;">
+        <h2>유저 정보 관리</h2>
+        <h5>이곳에서 작성된 유저 정보가 기업들에게 보여집니다</h5>
+        <el-divider />
+
+        <el-tabs :tab-position="tabPosition">
           <el-tab-pane label="기본정보"><SideBarProfileUserInfo /></el-tab-pane>
           <!-- <el-tab-pane label="Level of Education"><SideBarProfileUserEducation/></el-tab-pane> -->
           <el-tab-pane label="프로필사진 및 소개">
-            <div v-if="userdata.photo_index == ''">
+            <div v-if="userimgidx">
               <SideBarProfileUserIntroduction
                 photofilepath="https://i5d206.p.ssafy.io/file/thumbuser.png"
                 :introduce="userdata.ind_introduce"
+                :curphoto="false"
+                @uploadintro="reloadintro"
               />
             </div>
             <div v-else>
               <SideBarProfileUserIntroduction
-                v-if="userdata.ind_introduce"
+                v-if="userdata.photofilepath"
                 :photofilepath="userdata.photofilepath"
                 :introduce="userdata.ind_introduce"
+                :curphoto="true"
+                @uploadintro="reloadintro"
               />
             </div>
           </el-tab-pane>
-
           <el-tab-pane label="소개영상">
-            <div v-if="userdata.video_index == ''">
-              소개영상이 없습니다.
-            </div>
-            <div v-else>
+            <!-- <div v-if="userprvidx">
+              <h4>PR 동영상을 아직 업로드 하지 않았습니다</h4>
+              <h4>오른쪽 상단의 버튼을 눌러 영상을 업로드 해보세요</h4>
+            </div> -->
+            <div>
               <PRVideo
                 v-if="userdata.videofilepath"
                 :vediofilepath="userdata.videofilepath"
+                @uploadPR="reloadPR"
+                :hasVideo="userprvidx"
               />
             </div>
           </el-tab-pane>
@@ -41,9 +52,9 @@
             <SideBarProfileUserTags
           /></el-tab-pane>
           <el-tab-pane label="서류관리">
-            <SideBarProfileUserDoc />
+            <SideBarProfileUserDoc @uploadDoc="reloadDoc" />
 
-            <div v-if="userdata.resume_index == ''" class="fileDoc">
+            <div v-if="userdocidx" class="fileDoc">
               등록된 이력서 및 포트폴리오가 없습니다.
             </div>
             <div v-else>
@@ -52,15 +63,10 @@
                 :initialDoc="userdata.resumefilepath"
               />
             </div>
-            <div>
-              {{ userdata.resumefilepath }}
-              <webviewer :initialDoc="userdata.resumefilepath" />
-            </div>
           </el-tab-pane>
           <el-tab-pane label="회원탈퇴"><DeleteUserAccount /></el-tab-pane>
         </el-tabs>
       </el-main>
-      <el-footer> </el-footer>
     </el-container>
     <router-view></router-view>
   </el-container>
@@ -78,6 +84,7 @@ import webviewer from "@/components/MainCompany/webviewer.vue";
 import jwt_decode from "jwt-decode";
 import axios from "axios";
 import server_url from "@/server.js";
+
 // 'https://i5d206.p.ssafy.io' -->사진 및 확인
 export default {
   name: "ProfileUser",
@@ -119,10 +126,9 @@ export default {
         localStorage.setItem("username", res.data.ind_name);
       })
       .catch((err) => {
-        console.log("token error");
-        console.log(err.response);
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
@@ -143,7 +149,7 @@ export default {
       })
       .catch((err) => {
         if (err.response == 401) {
-          console.log("token error");
+          this.$cookies.remove("PID_AUTH");
           this.$message.error("로그인세션이 만료되었습니다");
           localStorage.clear();
           this.$router.push("/");
@@ -155,6 +161,10 @@ export default {
       tabPosition: "left",
       testurl: "",
       show: false,
+      userimgidx: false,
+      userdocidx: false,
+      userprvidx: false,
+      userprofiledata: {},
       userdata: [
         { ind_name: "" },
         { ind_gender: "" },
@@ -176,28 +186,19 @@ export default {
     };
   },
   methods: {
-    upload() {
-      const token = this.$cookies.get("PID_AUTH");
-      const decoded = jwt_decode(token);
-      const index = decoded.index;
-
-      var frm = new FormData();
-      var Filedata = this.$refs.file.files[0];
-      frm.append("upfile", Filedata);
-
-      axios
-        .post(`https://i5d206.p.ssafy.io:8443/poi/resume/${index}`, frm, {
-          headers: { Authorization: token },
-        })
-        .then((response) => {
-          if (response.status == 200) {
-            alert("업로드 되었습니다!");
-          }
-          this.test();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    reloadintro() {
+      this.test(this.userdata.photofilepath);
+    },
+    reloadPR() {
+      this.test(this.userdata.videofilepath);
+    },
+    reloadDoc() {
+      this.test(this.userdata.resumefilepath);
+      // this.userdata.resumefilepath = "";
+      // await this.userdataload;
+      // if (this.userdata.resumefilepath) {
+      //   console.log("change");
+      // }
     },
     async userdataload() {
       const token = this.$cookies.get("PID_AUTH");
@@ -210,13 +211,24 @@ export default {
             headers: { Authorization: token },
           }
         );
-        var result = res.data[0];
+        var result = await res.data;
+        // console.log(result);
+        // this.userprofiledata = result;
         this.userdata.photofilepath =
-          "/file/" + result.photo_savefolder + "/" + result.photo_savefile;
+          "https://i5d206.p.ssafy.io/file/" +
+          result.photo_savefolder +
+          "/" +
+          result.photo_savefile;
         this.userdata.resumefilepath =
-          "/file/" + result.resume_savefolder + "/" + result.resume_savefile;
+          "https://i5d206.p.ssafy.io/file/" +
+          result.resume_savefolder +
+          "/" +
+          result.resume_savefile;
         this.userdata.videofilepath =
-          "/file/" + result.video_savefolder + "/" + result.video_savefile;
+          "https://i5d206.p.ssafy.io/file/" +
+          result.video_savefolder +
+          "/" +
+          result.video_savefile;
         this.userdata.resume_originfile = result.resume_originfile;
         this.userdata.photo_originfile = result.photo_originfile;
         this.userdata.video_originfile = result.video_originfile;
@@ -230,6 +242,10 @@ export default {
         this.userdata.ind_email = result.ind_email;
         this.userdata.ind_phone = result.ind_phone;
         this.userdata.ind_gender = result.ind_gender;
+
+        this.userimgidx = result.photo_index == 2;
+        this.userdocidx = result.resume_index == 0;
+        this.userprvidx = result.video_index == 0;
       } catch (error) {
         console.log(error);
       }
@@ -250,7 +266,7 @@ export default {
     testreload() {
       this.show = !this.show;
     },
-    test() {
+    test(data) {
       const loading = this.$loading({
         lock: true,
         text: "Loading",
@@ -258,10 +274,13 @@ export default {
         background: "rgba(0, 0, 0, 0.7)",
       });
       this.show = false;
+      this.userdata = [];
       this.userdataload();
       setTimeout(() => {
-        loading.close();
-      }, 2000);
+        if (data) {
+          loading.close();
+        }
+      });
       this.show = true;
     },
   },
@@ -269,15 +288,6 @@ export default {
 </script>
 
 <style scoped>
-.el-main {
-  margin: 1rem 1rem 1rem 1rem;
-  background-color: white;
-  border-radius: 20px;
-}
-#tabpane {
-  height: auto;
-  width: 1000px;
-}
 .fileDoc {
   margin: 20px;
 }

@@ -1,6 +1,6 @@
 <template>
   <el-table
-  style="border-radius: 2em;"
+    style="border-radius: 2em;"
     :data="
       InterviewReq.filter(
         (data) =>
@@ -24,48 +24,37 @@
       :filter-method="filterHandler"
       width="58"
     >
+      <template #default="scope">
+        <div v-if="scope.row.sug_state == 'W'">대기</div>
+        <div v-else-if="scope.row.sug_state == 'T'">확정</div>
+        <div v-else-if="scope.row.sug_state == 'F'">거절</div>
+        <div v-else-if="scope.row.sug_state == 'C'">취소</div>
+      </template>
     </el-table-column>
-    <el-table-column align="center" label="Company" prop="name" width="100%">
+    <el-table-column align="center" label="기업명" prop="name" width="100%">
     </el-table-column>
     <el-table-column align="center" label="직무" prop="sug_duty" width="100%">
     </el-table-column>
     <el-table-column align="center" label="한마디" prop="sug_message">
-    </el-table-column>
-    <el-table-column align="center">
-      <template #header>
-        <el-input v-model="search" size="mini" placeholder="Type to search" />
-      </template>
+    </el-table-column
+    ><el-table-column align="center" label="응답상태" prop="sug_message">
       <template #default="scope">
-        <CompanyInfo :item="scope.row.ent_index" />
-        &nbsp;
-        <el-button
+        <el-popover
+          placement="top"
+          :width="100"
+          trigger="click"
           v-if="scope.row.sug_state == 'W'"
-          type="primary"
-          @click="dialogVisible = true"
-          size="mini"
-          >응답하기</el-button
         >
-        <el-text v-if="scope.row.sug_state == 'T'" disabled size="mini"
-          >응답완료</el-text
-        >
-        <el-text v-if="scope.row.sug_state == 'F'" disabled size="mini"
-          >응답거절</el-text
-        >
-        <el-text v-if="scope.row.sug_state == 'C'" disabled size="mini"
-          >취소된 요청입니다</el-text
-        >
-
-        <el-dialog
-          title="일정선택"
-          v-model="dialogVisible"
-          width="30%"
-          :before-close="handleClose"
-        >
+          <template #reference>
+            <el-button size="mini">응답하기</el-button>
+          </template>
           <div style="text-align:center">
             <el-button
+              v-if="scope.row.sug_timeone"
               size="mini"
-              type="primary"
-              style="margin:5px"
+              plain
+              round
+              style="margin:5px;"
               @click="
                 select(
                   scope.$index,
@@ -75,10 +64,21 @@
                 )
               "
               >{{ scope.row.sug_timeone }}</el-button
+            >
+            <el-button
+              v-else
+              disabled
+              size="mini"
+              plain
+              round
+              style="margin:5px;"
+              >일정 없음</el-button
             ><br />
             <el-button
+              v-if="scope.row.sug_timetwo"
               size="mini"
-              type="primary"
+              plain
+              round
               style="margin:5px"
               @click="
                 select(
@@ -89,10 +89,20 @@
                 )
               "
               >{{ scope.row.sug_timetwo }}</el-button
+            ><el-button
+              v-else
+              disabled
+              size="mini"
+              plain
+              round
+              style="margin:5px;"
+              >일정 없음</el-button
             ><br />
             <el-button
+              v-if="scope.row.sug_timethree"
               size="mini"
-              type="primary"
+              plain
+              round
               style="margin:5px"
               @click="
                 select(
@@ -103,6 +113,14 @@
                 )
               "
               >{{ scope.row.sug_timethree }}</el-button
+            ><el-button
+              v-else
+              disabled
+              size="mini"
+              plain
+              round
+              style="margin:5px;"
+              >일정 없음</el-button
             ><br />
             <el-button
               size="mini"
@@ -112,7 +130,25 @@
               >거절하기</el-button
             >
           </div>
-        </el-dialog>
+        </el-popover>
+        <!--  -->
+        <el-text v-if="scope.row.sug_state == 'T'" disabled size="mini"
+          >응답완료</el-text
+        >
+        <el-text v-if="scope.row.sug_state == 'F'" disabled size="mini"
+          >응답거절</el-text
+        >
+        <el-text v-if="scope.row.sug_state == 'C'" disabled size="mini"
+          >취소된 요청입니다</el-text
+        >
+      </template>
+    </el-table-column>
+    <el-table-column align="center">
+      <template #header>
+        <el-input v-model="search" size="mini" placeholder="Type to search" />
+      </template>
+      <template #default="scope">
+        <CompanyInfoDetail :companyindex="scope.row.ent_index" />
       </template>
     </el-table-column>
   </el-table>
@@ -121,16 +157,64 @@
 <script>
 import jwt_decode from "jwt-decode";
 import axios from "axios";
-import CompanyInfo from "./CompanyInfo.vue";
-
+import CompanyInfoDetail from "@/components/CompanyInfo/CompanyInfoDetail.vue";
+let wsmain = null;
 export default {
   name: "UserSugInterview",
-  components: { CompanyInfo },
+  components: { CompanyInfoDetail },
+  created() {
+    const token = this.$cookies.get("PID_AUTH");
+    const decoded = jwt_decode(token);
+    const index = decoded.index;
+    wsmain = new WebSocket(`wss://i5d206.p.ssafy.io:8443/ws/${index}`);
+  },
   mounted() {
+    console.log("mounted start - ", wsmain);
+    wsmain.onopen = () => {
+      console.log("loginpage - Websocket is connected!");
+      this.sendMessage({
+        id: "sessioncheck",
+      });
+    };
+    wsmain.onmessage = (message) => {
+      var newmetting = JSON.parse(message.data);
+      console.log("ws onmessage- ", message);
+      if (newmetting.new == "new") {
+        console.log(newmetting);
+        // 요청받은 면접일정 가져오기
+        axios
+          .get(`https://i5d206.p.ssafy.io:8443/sug/${index}`, {
+            headers: { Authorization: token },
+          })
+          .then((res) => {
+            console.log(res);
+            this.InterviewReq = res.data;
+            location.reload();
+            setTimeout(() => {
+              this.$notify({
+                title: "면접요청",
+                message: "새로운 면접요청이 왔습니다, 확인해주세요",
+                duration: 0,
+              });
+            }, 1000);
+          })
+          .catch((err) => {
+            if (err.response == 401) {
+              this.$message.error("로그인세션이 만료되었습니다");
+              this.$cookies.remove("PID_AUTH");
+              localStorage.clear();
+              this.$router.push("/");
+            }
+          });
+      } else {
+        console.log("ws onmessage- ", newmetting.connect);
+      }
+    };
     // 토큰으로 유저index 가져오기
     const token = this.$cookies.get("PID_AUTH");
     const decoded = jwt_decode(token);
     const index = decoded.index;
+
     // 요청받은 면접일정 가져오기
     axios
       .get(`https://i5d206.p.ssafy.io:8443/sug/${index}`, {
@@ -141,10 +225,9 @@ export default {
         this.InterviewReq = res.data;
       })
       .catch((err) => {
-        console.log("token error");
-        console.log(err.response);
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
@@ -153,11 +236,16 @@ export default {
   data() {
     return {
       InterviewReq: [],
-      dialogVisible: false,
       search: "",
     };
   },
+  watch() {},
   methods: {
+    sendMessage(message) {
+      var jsonMessage = JSON.stringify(message);
+      console.log("Sending message: " + jsonMessage);
+      wsmain.send(jsonMessage);
+    },
     select(index, row, decision, sugindex) {
       console.log(index);
       console.log(decision);
@@ -174,13 +262,13 @@ export default {
             message: "수락되었습니다",
             type: "success",
           });
-          this.InterviewReq.splice(this.InterviewReq.indexOf(row), 1);
+          // this.InterviewReq.splice(this.InterviewReq.indexOf(row), 1);
+          location.reload();
         })
         .catch((err) => {
-          console.log("token error");
-          console.log(err.response);
           if (err.response == 401) {
             this.$message.error("로그인세션이 만료되었습니다");
+            this.$cookies.remove("PID_AUTH");
             localStorage.clear();
             this.$router.push("/");
           }

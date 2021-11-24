@@ -5,7 +5,8 @@
         (data) =>
           (!search ||
             data.ent_name.toLowerCase().includes(search.toLowerCase())) &&
-          data.int_done == 'W'
+          data.int_show == 'T' &&
+          data.int_donw == 'W'
       )
     "
     height="600"
@@ -18,16 +19,18 @@
       width="160%"
     >
     </el-table-column>
-    <el-table-column align="center" label="기업명" prop="ent_name" width="100%">
-    </el-table-column>
-    <el-table-column align="center" label="결과" prop="int_done" width="100%">
+    <el-table-column align="center" label="기업명" prop="ent_name">
     </el-table-column>
     <el-table-column align="center">
       <template #header>
-        <el-input v-model="search" size="mini" placeholder="Type to search" />
+        <el-input
+          v-model="search"
+          size="mini"
+          placeholder="검색어를 입력해주세요"
+        />
       </template>
       <template #default="scope">
-        <CompanyInfo :item="scope.row.ent_index" />
+        <CompanyInfoDetail :item="scope.row.ent_index" />
       </template>
     </el-table-column>
   </el-table>
@@ -36,11 +39,11 @@
 <script>
 import jwt_decode from "jwt-decode";
 import axios from "axios";
-import CompanyInfo from "./CompanyInfo.vue";
+import CompanyInfoDetail from "@/components/CompanyInfo/CompanyInfoDetail.vue";
 
 export default {
   name: "UserWaitingResult",
-  components: { CompanyInfo },
+  components: { CompanyInfoDetail },
   data() {
     // 토큰으로 유저index 가져오기
     const token = this.$cookies.get("PID_AUTH");
@@ -56,9 +59,9 @@ export default {
         this.pastinterview = res.data;
       })
       .catch((err) => {
-        console.log("여기서 이미 못받아옴");
         if (err.response.data.status == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
@@ -74,7 +77,7 @@ export default {
       axios
         .put(
           "https://i5d206.p.ssafy.io:8443/sug/cancel",
-          { headers: { Authorization: this.token } },
+          { headers: { Authorization: this.$store.state.usertoken } },
           {
             params: {
               index: sugindex,
@@ -89,9 +92,9 @@ export default {
           });
         })
         .catch((err) => {
-          console.log("token error");
           if (err.response.data.status == 401) {
             this.$message.error("로그인세션이 만료되었습니다");
+            this.$cookies.remove("PID_AUTH");
             localStorage.clear();
             this.$router.push("/");
           }

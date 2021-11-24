@@ -1,8 +1,8 @@
 <template>
   <div v-if="this.result.length > 0">
     <el-row :gutter="24">
-      <el-col :span="4" v-for="item in nowPageData" :key="item">
-        <SearchCompanyCard :item="item.ent_index" />
+      <el-col :span="4" v-for="item in nowPageData" :key="item" style="width: 100%">
+        <CompanyInfoCard :companyindex="item.ent_index" />
       </el-col>
     </el-row>
     <div style="text-align:center">
@@ -27,12 +27,12 @@
 import { ref } from "vue";
 import axios from "axios";
 import { useRoute } from "vue-router";
-import SearchCompanyCard from "@/components/search/SearchCompanyCard.vue";
+import CompanyInfoCard from "@/components/CompanyInfo/CompanyInfoCard.vue";
 
 export default {
   name: "SearchCompanyList",
   components: {
-    SearchCompanyCard,
+    CompanyInfoCard,
   },
   setup() {
     // 토큰가져오기
@@ -61,24 +61,24 @@ export default {
     console.log(nowPageData);
 
     function initData() {
-      console.log(1);
+      
       sliceData();
     }
 
     function handleSizeChange(val) {
-      console.log(2);
+      
       tableSize = val;
       sliceData();
     }
 
     function handleCurrentChange(val) {
-      console.log(3);
+      
       nowPage.value = val;
       sliceData();
     }
 
     function sliceData() {
-      console.log(4);
+      
       nowPageData.value = result.value.slice(
         tableSize * nowPage.value - tableSize,
         tableSize * nowPage.value

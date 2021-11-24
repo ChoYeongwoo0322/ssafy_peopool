@@ -1,43 +1,37 @@
 <template>
   <el-table
-  style="border-radius: 2em;"
+    style="border-radius: 2em;"
     :data="
       myinterview.filter(
         (data) =>
-          !search || data.name.toLowerCase().includes(search.toLowerCase())
+          (!search || data.name.toLowerCase().includes(search.toLowerCase())) &&
+          data.int_show == 'W'
       )
     "
     :default-sort="{ prop: 'int_start', order: 'ascending' }"
     height="500"
   >
-    <el-table-column
-      align="center"
-      label="Date"
-      prop="int_start"
-      sortable
-      width="160%"
-    >
+    <el-table-column align="center" label="날짜" prop="int_start" sortable width="160%">
     </el-table-column>
-    <el-table-column align="center" label="Company" prop="ent_name">
+    <el-table-column align="center" label="기업명" prop="ent_name"> </el-table-column>
+    <el-table-column align="center" label="면접장" prop="int_duty">
+      <template #default="scope">
+        <el-button
+          v-if="scope.row.int_show == 'W'"
+          size="mini"
+          type="danger"
+          @click="GoToInteriewRoom(scope.row.ent_name, scope.row.int_roomnumber)"
+          >Interview Room</el-button
+        >
+        <el-text v-else size="mini" disabled>인터뷰가 종료되었습니다</el-text>
+      </template>
     </el-table-column>
     <el-table-column align="center">
       <template #header>
-        <el-input v-model="search" size="mini" placeholder="Type to search" />
+        <el-input v-model="search" size="mini" placeholder="검색어를 입력해주세요" />
       </template>
       <template #default="scope">
-        <CompanyInfo :item="scope.row.ent_index" />
-        &nbsp;
-        <el-button
-          v-if="scope.row.int_end !== 'null'"
-          size="mini"
-          type="danger"
-          @click="
-            GoToInteriewRoom(scope.row.ent_name, scope.row.int_roomnumber)
-          "
-          >Interview Room</el-button
-        >
-
-        <el-text v-else size="mini" disabled>인터뷰가 종료되었습니다</el-text>
+        <CompanyInfoDetail :companyindex="scope.row.ent_index" />
       </template>
     </el-table-column>
   </el-table>
@@ -46,11 +40,11 @@
 <script>
 import jwt_decode from "jwt-decode";
 import axios from "axios";
-import CompanyInfo from "./CompanyInfo.vue";
+import CompanyInfoDetail from "@/components/CompanyInfo/CompanyInfoDetail.vue";
 
 export default {
   name: "UserSchedule",
-  components: { CompanyInfo },
+  components: { CompanyInfoDetail },
   mounted() {
     const token = this.$cookies.get("PID_AUTH");
     const decoded = jwt_decode(token);
@@ -65,10 +59,10 @@ export default {
         this.myinterview = res.data;
       })
       .catch((err) => {
-        console.log("token error");
-        console.log(err.response);
+        
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }

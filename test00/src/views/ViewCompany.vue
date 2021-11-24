@@ -5,12 +5,10 @@
     <el-container>
       <el-header><headerSearchCompany /></el-header>
       <el-main style="">
-        <h1>인기있는 기업 랭킹</h1>
-        <PopularCompanyList />
         <h1>태그별 기업 찾아보기</h1>
         <SelectCompanyTags />
       </el-main>
-      <el-footer> </el-footer>
+      
     </el-container>
   </el-container>
   <router-view></router-view>
@@ -19,9 +17,9 @@
 import SideBarUser from "@/components/SideBarComponents/SideBarUser.vue";
 import headerSearchCompany from "@/components/SideBarComponents/headerSearchCompany.vue";
 import SelectCompanyTags from "@/components/ViewCompany/SelectCompanyTags.vue";
-import PopularCompanyList from "@/components/ViewCompany/PopularCompanyList.vue";
 import jwt_decode from "jwt-decode";
 import axios from "axios";
+
 
 export default {
   name: "ViewCompany",
@@ -29,7 +27,6 @@ export default {
     SideBarUser,
     headerSearchCompany,
     SelectCompanyTags,
-    PopularCompanyList,
   },
   mounted() {},
   data() {
@@ -43,15 +40,13 @@ export default {
         headers: { Authorization: token },
       })
       .then((res) => {
-        console.log(res.data.ind_name);
         this.username = res.data.ind_name;
         localStorage.setItem("username", res.data.ind_name);
       })
       .catch((err) => {
-        console.log("token error");
-        console.log(err.response);
         if (err.response == 401) {
           this.$message.error("로그인세션이 만료되었습니다");
+          this.$cookies.remove("PID_AUTH");
           localStorage.clear();
           this.$router.push("/");
         }
@@ -66,12 +61,11 @@ export default {
         },
       })
       .then((res) => {
-        console.log(res);
         this.mytags = res.data;
       })
       .catch((err) => {
         if (err.response == 401) {
-          console.log("token error");
+          this.$cookies.remove("PID_AUTH");
           this.$message.error("로그인세션이 만료되었습니다");
           localStorage.clear();
           this.$router.push("/");

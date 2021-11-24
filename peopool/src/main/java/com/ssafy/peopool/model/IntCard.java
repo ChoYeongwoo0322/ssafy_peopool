@@ -8,11 +8,11 @@ public class IntCard {
 	String int_start; // 면접 시작 시간
 	String int_end; // 면접 종료 시간
 	String int_roomnumber; // 면접 room number
-	String int_show; // 진행 여부 (show / now show)
+	String int_show; // 진행 여부 (show / now show / cancle)
 	String ind_name; // 개인 이름
 	String ent_name; // 기업 이름
 	String int_done; // 면접 결과
-	String int_duty;
+	String int_duty; // 면접 직무
 	
 	public IntCard() {
 		
@@ -108,13 +108,12 @@ public class IntCard {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("IntCard [int_index=").append(int_index).append(", ind_index=").append(ind_index)
-				.append(", ent_index=").append(ent_index).append(", int_start=").append(int_start).append(", int_end=")
-				.append(int_end).append(", int_roomnumber=").append(int_roomnumber).append(", int_show=")
-				.append(int_show).append(", ind_name=").append(ind_name).append(", ent_name=").append(ent_name)
-				.append(", int_done=").append(int_done).append(", int_duty=").append(int_duty).append("]");
-		return builder.toString();
+		return "IntCard [int_index=" + int_index + ", ind_index=" + ind_index + ", ent_index=" + ent_index
+				+ ", int_start=" + int_start + ", int_end=" + int_end + ", int_roomnumber=" + int_roomnumber
+				+ ", int_show=" + int_show + ", ind_name=" + ind_name + ", ent_name=" + ent_name + ", int_done="
+				+ int_done + ", int_duty=" + int_duty + "]";
 	}
+
+	
 
 }

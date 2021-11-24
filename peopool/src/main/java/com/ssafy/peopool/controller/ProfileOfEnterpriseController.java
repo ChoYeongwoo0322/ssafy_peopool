@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ssafy.peopool.model.EntCard;
+import com.ssafy.peopool.model.EntCardImage;
 import com.ssafy.peopool.model.FileInfo;
 import com.ssafy.peopool.model.ProfileOfEnterprise;
 import com.ssafy.peopool.model.service.ProfileOfEnterpriseService;
@@ -55,7 +57,7 @@ public class ProfileOfEnterpriseController {
 	
 	@ApiOperation(value = "팔로워 순으로 전체 프로필을 가져온다.", response = String.class)
 	@GetMapping("/ByFollower")
-	public ResponseEntity<List<EntCard>> getAllProfileByFollower() throws SQLException{
+	public ResponseEntity<List<EntCardImage>> getAllProfileByFollower() throws SQLException{
 		return new ResponseEntity<>(profileOfEnterpriseService.getAllProfileByFollower(), HttpStatus.OK);
 		
 	}
@@ -65,6 +67,13 @@ public class ProfileOfEnterpriseController {
 	@GetMapping("/index/{index}")
 	public ResponseEntity<EntCard> getProfileOfEnterprise(@PathVariable("index")int index) throws SQLException{
 		return new ResponseEntity<>(profileOfEnterpriseService.getProfileOfEnterprise(index), HttpStatus.OK);
+		
+	}
+	
+	@ApiOperation(value = "index에 해당하는 프로필과 파일 경로를 가져온다.", response = String.class)
+	@GetMapping("/path/{index}")
+	public ResponseEntity<List<Map<Object, Object>>> getProfile(@PathVariable("index")int index) throws SQLException{
+		return new ResponseEntity<>(profileOfEnterpriseService.getProfile(index), HttpStatus.OK);
 		
 	}
 	
